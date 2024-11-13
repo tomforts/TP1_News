@@ -68,6 +68,7 @@ class PageManager {
         this.storeScrollPosition();
         if (!append) this.itemsPanel.empty();
         let endOfData = await this.getItems(this.currentPageToQueryString(append));
+        console.log(endOfData);
         this.restoreScrollPosition();
         let instance = this;
         this.scrollPanel.scroll(function () {

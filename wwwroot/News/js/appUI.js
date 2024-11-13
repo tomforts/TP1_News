@@ -11,7 +11,7 @@ let waitingGifTrigger = 2000;
 function addWaitingGif() {
     clearTimeout(waiting);
     waiting = setTimeout(() => {
-        $("#itemsPanel").append($("<div id='waitingGif' class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>'"));
+        $("#itemsPanel").append($("<div id='waitingGif' class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>"));
     }, waitingGifTrigger)
 }
 function removeWaitingGif() {
@@ -132,13 +132,14 @@ async function renderNews(queryString) {
     queryString += "&sort=category";
     if (selectedCategory != "") queryString += "&category=" + selectedCategory;
     addWaitingGif();
-    let response = await News_API.Get(queryString);
+    let response = await News_API.GetQuery(queryString);
     if (!News_API.error) {
         currentETag = response.ETag;
         let News = response.data;
+        
         if (News.length > 0) {
-            News.forEach(News => {
-                $("#itemsPanel").append(renderNews(News));
+            News.forEach(New => {
+                $("#itemsPanel").append(renderNew(New));
             });
             $(".editCmd").off();
             $(".editCmd").on("click", function () {
@@ -188,7 +189,6 @@ async function renderDeleteNewsForm(id) {
     let response = await News_API.Get(id)
     if (!News_API.error) {
         let News = response.data;
-        let favicon = makeFavicon(News.Url);
         if (News !== null) {
             $("#newsForm").append(`
         <div class="NewsdeleteForm">
@@ -198,7 +198,7 @@ async function renderDeleteNewsForm(id) {
                 <div class="NewsContainer noselect">
                     <div class="NewsLayout">
                         <div class="News">
-                            <a href="${News.Url}" target="_blank"> ${favicon} </a>
+                            <a href="" target="_blank"></a>
                             <span class="NewsTitle">${News.Title}</span>
                         </div>
                         <span class="NewsCategory">${News.Category}</span>
@@ -246,22 +246,19 @@ function getFormData($form) {
 }
 function newNews() {
     News = {};
-    News.Id = 0;
     News.Title = "";
     News.Texte = "";
     News.Category = "";
-    News.Image = "";
-    News.Creation = Date.now();
     return News;
 }
 function renderNewsForm(News = null) {
     hideNews();
     let create = News == null;
-    let favicon = `<div class="big-favicon"></div>`;
-    if (create)
+    if (create){
         News = newNews();
-    else
-        favicon = makeFavicon(News.Url, true);
+        News.Image = "images/no-avatar.png";
+    }
+    
     $("#actionTitle").text(create ? "Création" : "Modification");
     $("#newsForm").show();
     $("#newsForm").empty();
@@ -298,24 +295,24 @@ function renderNewsForm(News = null) {
                 required
                 value="${News.Category}"
             />
-            <label for="Image" class="form-label">Image </label>
-            <input 
-                class="form-control"
-                name="Image"
-                id="Image"
-                placeholder="Image"
-                required
-                value="${News.Image}"
-            />
-            <br>
+           <label class="form-label">Image </label>
+            <div   class='imageUploader' 
+                   newImage='${create}' 
+                   controlId='Image' 
+                   imageSrc='${News.Image}' 
+                   waitingImage="Loading_icon.gif">
+            </div>
+            <hr>
             <input type="submit" value="Enregistrer" id="saveNews" class="btn btn-primary">
             <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
         </form>
     `);
+    initImageUploaders();
     initFormValidation();
     $('#NewsForm').on("submit", async function (event) {
         event.preventDefault();
         let News = getFormData($("#NewsForm"));
+        News.Creation = Date.now();
         News = await News_API.Save(News, create);
         if (!News_API.error) {
             showNews();
@@ -331,25 +328,14 @@ function renderNewsForm(News = null) {
     });
 }
 
-//pas utile pour le tp
-function makeFavicon(url, big = false) {
-    // Utiliser l'API de google pour extraire le favicon du site pointé par url
-    // retourne un élément div comportant le favicon en tant qu'image de fond
-    ///////////////////////////////////////////////////////////////////////////
-    if (url.slice(-1) != "/") url += "/";
-    let faviconClass = "favicon";
-    if (big) faviconClass = "big-favicon";
-    url = "http://www.google.com/s2/favicons?sz=64&domain=" + url;
-    return `<div class="${faviconClass}" style="background-image: url('${url}');"></div>`;
-}
-function renderNews(News) {
-    let favicon = makeFavicon(News.Url);
+function renderNew(News) {
+   
     return $(`
      <div class="NewsRow" id='${News.Id}'>
         <div class="NewsContainer noselect">
             <div class="NewsLayout">
                 <div class="News">
-                    <a href="${News.Url}" target="_blank"> ${favicon} </a>
+                <span class="NewsTitle">${News.Title}</span>
                     <span class="NewsTitle">${News.Title}</span>
                 </div>
                 <span class="NewsCategory">${News.Category}</span>
