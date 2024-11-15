@@ -68,7 +68,11 @@ class PageManager {
         this.storeScrollPosition();
         if (!append) this.itemsPanel.empty();
         let endOfData = await this.getItems(this.currentPageToQueryString(append));
-        this.restoreScrollPosition();
+        if (append) {
+            this.restoreScrollPosition();
+        } else {
+            this.scrollPanel.scrollTop(0);
+        }
         let instance = this;
         this.scrollPanel.scroll(function () {
             if (!endOfData && (instance.scrollPanel.scrollTop() + instance.scrollPanel.outerHeight() >= instance.itemsPanel.outerHeight() - instance.itemLayout.height / 2)) {
@@ -76,7 +80,6 @@ class PageManager {
                 instance.currentPage.offset++;
                 instance.update(true);
             }
-            //console.log(`scroll`,instance.scrollPanel.scrollTop())
         });
     }
 }

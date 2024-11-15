@@ -18,8 +18,14 @@
 <body>
     <div id="main">
         <div id="header">
-            <img src="newspaper_logo.png" class="appLogo" alt="" title="Les nouvelles du jour">
+            <a href="index.html">
+                <img src="newspaper_logo.png" class="appLogo" alt="" title="Les nouvelles du jour">
+            </a>
             <h4 id="actionTitle">Liste des nouvelles</h4>
+            <div id="searchBarContainer">
+                <input type="text" id="searchBar" placeholder="Rechercher...">
+                <i class="cmdIcon fa-solid fa-magnifying-glass" id="searchNews" title="Barre de recherche"></i>
+            </div>
             <i class="cmdIcon fa fa-plus" id="createNews" title="Ajouter une nouvelle"></i>
             <i class="cmdIcon fa fa-times" id="abort" title="Annuler"></i>
             <div class="dropdown ms-auto" >
@@ -34,6 +40,9 @@
             </div>
         </div>
         <div id="content">
+            <div id="selectedCategoryDisplay" class="selectedCategoryDisplay">
+                <span id="selectedCategory"></span>
+            </div>
             <div id="scrollPanel">
                 <div id="itemsPanel">
                     <div class="NewsRow" id="sample">
