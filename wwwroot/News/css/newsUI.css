@@ -35,7 +35,7 @@
 }
 
 .NewsTitle {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: black;
 }
@@ -43,7 +43,25 @@
 .NewsCategory {
     color: dodgerblue !important;
 }
+.NewsImage{
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: auto;
+    height: 700px;
+    border-radius: 30px;
 
+}
+
+.NewsDate{
+ font-size: small;
+ font-weight: lighter;
+}
+
+.NewsText{
+    white-space: pre-wrap;
+
+}
 .NewsCommandPanel {
     display: flex;
     flex-direction: row;

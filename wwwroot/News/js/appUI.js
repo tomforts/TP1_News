@@ -136,7 +136,7 @@ async function renderNews(queryString) {
     if (!News_API.error) {
         currentETag = response.ETag;
         let News = response.data;
-        
+
         if (News.length > 0) {
             News.forEach(New => {
                 $("#itemsPanel").append(renderNew(New));
@@ -247,18 +247,18 @@ function getFormData($form) {
 function newNews() {
     News = {};
     News.Title = "";
-    News.Texte = "";
+    News.Text = "";
     News.Category = "";
     return News;
 }
 function renderNewsForm(News = null) {
     hideNews();
     let create = News == null;
-    if (create){
+    if (create) {
         News = newNews();
         News.Image = "images/no-avatar.png";
     }
-    
+
     $("#actionTitle").text(create ? "Création" : "Modification");
     $("#newsForm").show();
     $("#newsForm").empty();
@@ -284,7 +284,7 @@ function renderNewsForm(News = null) {
                 id="Text"
                 placeholder="Text"
                 required
-                value="${News.Texte}"
+                value="${News.Text}"
             />
             <label for="Category" class="form-label">Catégorie </label>
             <input 
@@ -329,16 +329,21 @@ function renderNewsForm(News = null) {
 }
 
 function renderNew(News) {
-   
+    //const formattedText = News.Text.replace("/\n/g", "<br>");
+
     return $(`
      <div class="NewsRow" id='${News.Id}'>
         <div class="NewsContainer noselect">
             <div class="NewsLayout">
                 <div class="News">
-                <span class="NewsTitle">${News.Title}</span>
-                    <span class="NewsTitle">${News.Title}</span>
-                </div>
                 <span class="NewsCategory">${News.Category}</span>
+                </div>
+                <span class="NewsTitle">${News.Title}</span>
+                <div class="NewsImage" style="background-image:url('${News.Image}')"></div>
+                
+
+                <span class="NewsDate">${convertToFrenchDate(News.Creation)}</span>
+                <span class="NewsText">${News.Text}</span>
             </div>
             <div class="NewsCommandPanel">
                 <span class="editCmd cmdIcon fa fa-pencil" editNewsId="${News.Id}" title="Modifier ${News.Title}"></span>
@@ -347,4 +352,22 @@ function renderNew(News) {
         </div>
     </div>           
     `);
+}
+
+
+function convertToFrenchDate(numeric_date) {
+    date = new Date(numeric_date);
+    var options = { year: 'numeric', month: 'long', day: 'numeric' };
+    var opt_weekday = { weekday: 'long' };
+    var weekday = toTitleCase(date.toLocaleDateString("fr-FR", opt_weekday));
+
+    function toTitleCase(str) {
+        return str.replace(
+            /\w\S*/g,
+            function (txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            }
+        );
+    }
+    return weekday + " le " + date.toLocaleDateString("fr-FR", options) + " @ " + date.toLocaleTimeString("fr-FR");
 }
