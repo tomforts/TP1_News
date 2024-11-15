@@ -8,7 +8,7 @@
 .NewsContainer {
     display: grid;
     grid-template-columns: 4fr 1fr;
-    align-items: top;
+    align-items: flex-start;
     background-color: #eee;
     border-radius: 6px;
 }
@@ -71,4 +71,11 @@
 
 .NewsdeleteForm {
     margin: 20px;
+}
+.selectedCategoryDisplay{
+    display: block;
+}
+#searchBarContainer{
+    display: inline-block;
+    vertical-align: middle;
 }

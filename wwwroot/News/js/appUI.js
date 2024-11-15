@@ -6,6 +6,7 @@ let hold_Periodic_Refresh = false;
 let pageManager;
 let itemLayout;
 
+let isUpdating = false;
 let waiting = null;
 let waitingGifTrigger = 2000;
 function addWaitingGif() {
@@ -18,6 +19,8 @@ function removeWaitingGif() {
     clearTimeout(waiting);
     $("#waitingGif").remove();
 }
+
+
 
 Init_UI();
 
@@ -55,18 +58,27 @@ function hideNews() {
     $("#abort").show();
     hold_Periodic_Refresh = true;
 }
+
 function start_Periodic_Refresh() {
     setInterval(async () => {
-        if (!hold_Periodic_Refresh) {
+        if (!hold_Periodic_Refresh && !isUpdating) {
+            isUpdating = true;
             let etag = await News_API.HEAD();
             if (currentETag != etag) {
                 currentETag = etag;
                 await pageManager.update(false);
                 compileCategories();
             }
+            isUpdating = false;
         }
-    },
-        periodicRefreshPeriod * 1000);
+    }, periodicRefreshPeriod * 1000);
+
+    document.getElementById('scrollPanel').addEventListener('scroll', async function() {
+        const scrollPanel = document.getElementById('scrollPanel');
+        if (scrollPanel.scrollTop + scrollPanel.clientHeight >= scrollPanel.scrollHeight) {
+            await pageManager.update(false);
+        }
+    });
 }
 function renderAbout() {
     hideNews();
@@ -127,7 +139,7 @@ async function compileCategories() {
         }
     }
 }
-async function renderNews(queryString) {
+async function renderNews(queryString = "?") {
     let endOfData = false;
     queryString += "&sort=category";
     if (selectedCategory != "") queryString += "&category=" + selectedCategory;
@@ -138,8 +150,11 @@ async function renderNews(queryString) {
         let News = response.data;
 
         if (News.length > 0) {
-            News.forEach(New => {
-                $("#itemsPanel").append(renderNew(New));
+            News.sort((a, b) => new Date(b.Creation) - new Date(a.Creation));
+
+            $("#itemsPanel").empty();
+            News.forEach(news => {
+                $("#itemsPanel").append(renderNew(news));
             });
             $(".editCmd").off();
             $(".editCmd").on("click", function () {
@@ -277,15 +292,6 @@ function renderNewsForm(News = null) {
                 InvalidMessage="Le titre comporte un caractère illégal"
                 value="${News.Title}"
             />
-            <label for="Text" class="form-label">Texte </label>
-            <input 
-                class="form-control"
-                name="Text"
-                id="Text"
-                placeholder="Text"
-                required
-                value="${News.Text}"
-            />
             <label for="Category" class="form-label">Catégorie </label>
             <input 
                 class="form-control"
@@ -294,6 +300,15 @@ function renderNewsForm(News = null) {
                 placeholder="Catégorie"
                 required
                 value="${News.Category}"
+            />
+            <label for="Text" class="form-label">Texte </label>
+            <input 
+                class="form-control"
+                name="Text"
+                id="Text"
+                placeholder="Text"
+                required
+                value="${News.Text}"
             />
            <label class="form-label">Image </label>
             <div   class='imageUploader' 
@@ -336,12 +351,10 @@ function renderNew(News) {
         <div class="NewsContainer noselect">
             <div class="NewsLayout">
                 <div class="News">
-                <span class="NewsCategory">${News.Category}</span>
+                    <a href="#" class="NewsCategory" data-category="${News.Category}">${News.Category}</a>
                 </div>
-                <span class="NewsTitle">${News.Title}</span>
+                    <span class="NewsTitle">${News.Title}</span>
                 <div class="NewsImage" style="background-image:url('${News.Image}')"></div>
-                
-
                 <span class="NewsDate">${convertToFrenchDate(News.Creation)}</span>
                 <span class="NewsText">${News.Text}</span>
             </div>
@@ -353,7 +366,6 @@ function renderNew(News) {
     </div>           
     `);
 }
-
 
 function convertToFrenchDate(numeric_date) {
     date = new Date(numeric_date);
@@ -371,3 +383,61 @@ function convertToFrenchDate(numeric_date) {
     }
     return weekday + " le " + date.toLocaleDateString("fr-FR", options) + " @ " + date.toLocaleTimeString("fr-FR");
 }
+
+function updateSelectedCategoryDisplay() {
+    const displayElement = $("#selectedCategoryDisplay");
+    displayElement.empty();
+    if (selectedCategory != "") {
+        displayElement.append('<a class="fa-solid fa-house" href="index.html"> </a>');
+        displayElement.append(` >> ${selectedCategory}`);
+    }
+}
+
+$(document).on("click", ".NewsCategory", function (event){
+    event.preventDefault();
+    selectedCategory = $(this).data("category");
+    updateDropDownMenu();
+    pageManager.reset();
+    updateSelectedCategoryDisplay();
+    renderNews();
+});
+
+$('#allCatCmd').on("click", function () {
+    showNews();
+    selectedCategory = "";
+    updateDropDownMenu();
+    pageManager.reset();
+    updateSelectedCategoryDisplay();
+});
+
+$('.category').on("click", function () {
+    showNews();
+    selectedCategory = $(this).text().trim();
+    updateDropDownMenu();
+    pageManager.reset();
+    updateSelectedCategoryDisplay();
+});
+
+document.getElementById('searchBar').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        document.getElementById('searchNews').click();
+    }
+});
+
+document.getElementById('searchNews').addEventListener('click', function() {
+    const searchBar = document.getElementById('searchBar');
+    const searchString = searchBar.value.toLowerCase();
+    const newsItems = document.querySelectorAll('.NewsRow');
+
+    newsItems.forEach(function(newsItem) {
+        const title = newsItem.querySelector('.NewsTitle').textContent.toLowerCase();
+        const text = newsItem.querySelector('.NewsText').textContent.toLowerCase();
+
+        if (title.includes(searchString) || text.includes(searchString)) {
+            newsItem.style.display = 'block';
+        } else {
+            newsItem.style.display = 'none';
+        }
+    });
+});
