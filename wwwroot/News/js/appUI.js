@@ -138,6 +138,8 @@ async function renderNews(queryString) {
         let News = response.data;
 
         if (News.length > 0) {
+            News.sort((a, b) => new Date(b.Creation) - new Date(a.Creation));
+
             News.forEach(New => {
                 $("#itemsPanel").append(renderNew(New));
             });
