@@ -6,7 +6,7 @@ let hold_Periodic_Refresh = false;
 let pageManager;
 let itemLayout;
 
-let isUpdating = false;
+//let isUpdating = false;
 let waiting = null;
 let waitingGifTrigger = 2000;
 
@@ -61,28 +61,27 @@ function hideNews() {
 
 function start_Periodic_Refresh() {
     setInterval(async () => {
-        if (!hold_Periodic_Refresh && !isUpdating) {
-            isUpdating = true;
-            let etag = await News_API.HEAD();
-            if (currentETag != etag) {
-                currentETag = etag;
-                await pageManager.update(false);
-                compileCategories();
+            if (!hold_Periodic_Refresh) {
+                let etag = await Bookmarks_API.HEAD();
+                if (currentETag != etag) {
+                    currentETag = etag;
+                    await pageManager.update(false);
+                    compileCategories();
+                }
             }
-            isUpdating = false;
-        }
-    }, periodicRefreshPeriod * 1000);
+        },
+        periodicRefreshPeriod * 1000);
 
-    document.getElementById('scrollPanel').addEventListener('scroll', async function() {
-        const scrollPanel = document.getElementById('scrollPanel');
-        if (scrollPanel.scrollTop + scrollPanel.clientHeight >= scrollPanel.scrollHeight) {
-            let etag = await News_API.HEAD();
-            if (currentETag != etag) {
-                currentETag = etag;
-                await pageManager.update(false);
-            }
-        }
-    });
+    // document.getElementById('scrollPanel').addEventListener('scroll', async function() {
+    //     const scrollPanel = document.getElementById('scrollPanel');
+    //     if (scrollPanel.scrollTop + scrollPanel.clientHeight >= scrollPanel.scrollHeight) {
+    //         let etag = await News_API.HEAD();
+    //         if (currentETag != etag) {
+    //             currentETag = etag;
+    //             await pageManager.update(false);
+    //         }
+    //     }
+    // });
 }
 
 function renderAbout() {
@@ -144,7 +143,7 @@ async function compileCategories() {
         }
     }
 }
-async function renderNews(queryString = "?") {
+async function renderNews(queryString) {
     let endOfData = false;
     queryString += "&sort=category";
     if (selectedCategory != "") queryString += "&category=" + selectedCategory;
@@ -153,11 +152,10 @@ async function renderNews(queryString = "?") {
     if (!News_API.error) {
         currentETag = response.ETag;
         let News = response.data;
-
         if (News.length > 0) {
             News.sort((a, b) => new Date(b.Creation) - new Date(a.Creation));
 
-            $("#itemsPanel").empty();
+            //$("#itemsPanel").empty();
             News.forEach(news => {
                 $("#itemsPanel").append(renderNew(news));
             });
